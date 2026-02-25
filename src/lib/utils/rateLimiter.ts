@@ -1,62 +1,60 @@
 /**
- * Um rate limiter simples baseado em tempo (Token Bucket simplificado).
- * Garante um intervalo mínimo entre as requisições.
+ * Rate limiter simples baseado em janela de tempo (Sliding Window Log).
+ * Garante um número máximo de requisições por intervalo.
  */
 
-interface LimiterOptions {
-	/** Número máximo de requisições por intervalo */
+interface RateLimiterOptions {
+	/** Número máximo de requisições permitidas no intervalo */
 	maxRequests: number;
-	/** Intervalo de tempo em milissegundos */
-	interval: number;
+	/** Duração do intervalo em milissegundos */
+	intervalMs: number;
 }
 
 class RateLimiter {
+	private readonly maxRequests: number;
+	private readonly intervalMs: number;
 	private timestamps: number[] = [];
-	private maxRequests: number;
-	private interval: number;
 
-	constructor(options: LimiterOptions) {
-		this.maxRequests = options.maxRequests;
-		this.interval = options.interval;
+	constructor({ maxRequests, intervalMs }: RateLimiterOptions) {
+		this.maxRequests = maxRequests;
+		this.intervalMs = intervalMs;
 	}
 
 	/**
-	 * Método principal para aguardar a vez de fazer uma requisição.
-	 * Retorna uma Promise que resolve quando a requisição pode prosseguir.
+	 * Bloqueia até que uma requisição possa ser executada, respeitando o limite.
 	 */
 	async waitForToken(): Promise<void> {
 		const now = Date.now();
 
-		// Remove timestamps mais antigos que o intervalo atual
+		// Remove registros antigos fora da janela atual
 		this.timestamps = this.timestamps.filter(
-			(timestamp) => now - timestamp < this.interval,
+			(timestamp) => now - timestamp < this.intervalMs,
 		);
 
-		// Se ainda temos espaço no intervalo, permite a requisição
+		// Se ainda há espaço, permite a requisição imediatamente
 		if (this.timestamps.length < this.maxRequests) {
 			this.timestamps.push(now);
 			return;
 		}
 
-		// Se atingiu o limite, calcula o tempo de espera
+		// Calcula o tempo necessário para o próximo token ficar disponível
 		const oldestTimestamp = this.timestamps[0];
-		const waitTime = this.interval - (now - oldestTimestamp);
+		const waitTime = this.intervalMs - (now - oldestTimestamp);
 
 		if (waitTime > 0) {
-			console.log(`Rate limit atingido. Aguardando ${waitTime}ms...`);
+			console.log(`⏳ Rate limit atingido. Aguardando ${waitTime}ms...`);
 			await new Promise((resolve) => setTimeout(resolve, waitTime));
-			// Após esperar, tenta novamente (recursão simples)
+			// Tenta novamente após a espera
 			return this.waitForToken();
 		}
 
-		// Se por algum motivo não precisou esperar, prossegue
+		// Caso raro: waitTime <= 0, adiciona e prossegue
 		this.timestamps.push(now);
 	}
 }
 
-// Configuração para o TMDB: 40 requisições por segundo (40/1000ms)
-// Para ser conservador, vamos usar 35 req/s para dar uma margem de segurança.
+// Configuração conservadora para API do TMDB (limite real: 40 req/s)
 export const tmdbRateLimiter = new RateLimiter({
 	maxRequests: 35,
-	interval: 1000, // 1 segundo
+	intervalMs: 1000,
 });

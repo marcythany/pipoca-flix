@@ -7,50 +7,34 @@ export async function GET(
 	{ params }: { params: Promise<{ id: string }> },
 ) {
 	try {
-		// Extrair e validar ID
 		const { id } = await params;
 		const movieId = parseInt(id);
 		if (isNaN(movieId) || movieId <= 0) {
 			return NextResponse.json({ error: 'ID inválido' }, { status: 400 });
 		}
 
-		// Verificar variáveis de ambiente
-		if (!env.TMDB_BASE_URL || !env.TMDB_API_KEY) {
-			console.error('TMDB env vars não configuradas');
-			return NextResponse.json(
-				{ error: 'Erro de configuração do servidor' },
-				{ status: 500 },
-			);
-		}
-
-		// Rate limiting antes da chamada externa
 		await tmdbRateLimiter.waitForToken();
 
-		// Requisição ao TMDB
-		const url = `${env.TMDB_BASE_URL}/movie/${movieId}/watch/providers`;
+		const url = `${env.TMDB_BASE_URL}/movie/${movieId}?language=pt-BR&append_to_response=credits,videos`;
 		const response = await fetch(url, {
 			headers: {
 				accept: 'application/json',
 				Authorization: `Bearer ${env.TMDB_API_KEY}`,
 			},
-			next: { revalidate: 3600, tags: [`movie-${movieId}-providers`] }, // cache de 1h
+			next: { revalidate: 86400, tags: [`movie-${movieId}`] }, // 1 dia
 		});
 
 		if (!response.ok) {
 			return NextResponse.json(
-				{ error: 'Erro ao buscar provedores no TMDB' },
+				{ error: 'Erro ao buscar detalhes do filme' },
 				{ status: response.status },
 			);
 		}
 
 		const data = await response.json();
-
-		// Extrair provedores do Brasil (fallback EUA)
-		const brProviders = data.results?.BR || data.results?.US || null;
-
-		return NextResponse.json(brProviders);
+		return NextResponse.json(data);
 	} catch (error) {
-		console.error('Erro na rota de providers:', error);
+		console.error('Erro em /api/movie/[id]/details:', error);
 		return NextResponse.json(
 			{ error: 'Erro interno do servidor' },
 			{ status: 500 },

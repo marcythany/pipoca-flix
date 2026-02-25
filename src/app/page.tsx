@@ -1,34 +1,22 @@
 import { Header } from '@/components/Header';
-import { HeroSection } from '@/components/HeroSection';
-import { MovieCard } from '@/components/MovieCard';
+import { HeroMovie } from '@/components/sections/HeroMovie';
+import { NowPlayingMovies } from '@/components/sections/NowPlayingMovies';
+import { PopularMovies } from '@/components/sections/PopularMovies';
+import { TopRatedMovies } from '@/components/sections/TopRatedMovies';
 import { SectionTitle } from '@/components/SectionTitle';
-import {
-	getMovieDetails,
-	getNowPlayingMovies,
-	getPopularMovies,
-	getTopRatedMovies,
-} from '@/lib/services/tmdb';
+import { HeroSectionSkeleton, MovieGridSkeleton } from '@/components/Skeletons';
+import { Suspense } from 'react';
 
-export default async function Home() {
-	// Busca os dados das listas
-	const popularMovies = await getPopularMovies();
-	const topRatedMovies = await getTopRatedMovies();
-	const nowPlayingMovies = await getNowPlayingMovies();
-
-	// Para a hero section, vamos usar o primeiro filme em cartaz (se houver)
-	// Ou o primeiro popular como fallback
-	const heroMovieId =
-		nowPlayingMovies?.results[0]?.id || popularMovies?.results[0]?.id;
-	const heroMovie = heroMovieId ? await getMovieDetails(heroMovieId) : null;
-
+export default function Home() {
 	return (
 		<main className='min-h-screen bg-zinc-950'>
 			<Header />
 
-			{/* Hero Section - Dinâmica e chamativa */}
-			{heroMovie && <HeroSection movie={heroMovie} />}
+			{/* Hero Section com Suspense */}
+			<Suspense fallback={<HeroSectionSkeleton />}>
+				<HeroMovie />
+			</Suspense>
 
-			{/* Seções de filmes com layout melhorado */}
 			<div className='space-y-16 pb-16'>
 				{/* Em Cartaz */}
 				<section id='now-playing' className='container mx-auto px-4'>
@@ -38,9 +26,9 @@ export default async function Home() {
 						subtitle='Os lançamentos da semana'
 					/>
 					<div className='grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 md:gap-6'>
-						{nowPlayingMovies?.results.slice(0, 12).map((movie) => (
-							<MovieCard key={movie.id} movie={movie} />
-						))}
+						<Suspense fallback={<MovieGridSkeleton count={12} />}>
+							<NowPlayingMovies />
+						</Suspense>
 					</div>
 				</section>
 
@@ -52,9 +40,9 @@ export default async function Home() {
 						subtitle='Os favoritos da galera'
 					/>
 					<div className='grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 md:gap-6'>
-						{popularMovies?.results.slice(0, 12).map((movie) => (
-							<MovieCard key={movie.id} movie={movie} />
-						))}
+						<Suspense fallback={<MovieGridSkeleton count={12} />}>
+							<PopularMovies />
+						</Suspense>
 					</div>
 				</section>
 
@@ -66,14 +54,14 @@ export default async function Home() {
 						subtitle='O que a crítica e o público amam'
 					/>
 					<div className='grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 md:gap-6'>
-						{topRatedMovies?.results.slice(0, 12).map((movie) => (
-							<MovieCard key={movie.id} movie={movie} />
-						))}
+						<Suspense fallback={<MovieGridSkeleton count={12} />}>
+							<TopRatedMovies />
+						</Suspense>
 					</div>
 				</section>
 			</div>
 
-			{/* Footer simples com efeito glass */}
+			{/* Footer */}
 			<footer className='border-t border-white/10 bg-black/30 backdrop-blur-md py-8'>
 				<div className='container mx-auto px-4 text-center text-sm text-gray-400'>
 					<p>© 2026 Pipoca Flix. Todos os direitos reservados.</p>
