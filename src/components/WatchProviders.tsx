@@ -1,9 +1,7 @@
 'use client';
 
-import { env } from '@/env';
 import { WatchProvider } from '@/lib/types/movie';
-import Image from 'next/image';
-import { useState } from 'react';
+import { MovieImage } from './MovieImage';
 
 interface WatchProvidersProps {
 	providers: {
@@ -16,8 +14,6 @@ interface WatchProvidersProps {
 }
 
 export function WatchProviders({ providers, movieTitle }: WatchProvidersProps) {
-	const [imgErrors, setImgErrors] = useState<Record<number, boolean>>({});
-
 	if (
 		!providers ||
 		(!providers.flatrate && !providers.buy && !providers.rent)
@@ -31,10 +27,6 @@ export function WatchProviders({ providers, movieTitle }: WatchProvidersProps) {
 		);
 	}
 
-	const handleImageError = (providerId: number) => {
-		setImgErrors((prev) => ({ ...prev, [providerId]: true }));
-	};
-
 	const renderProviderList = (
 		providerList: WatchProvider[] | undefined,
 		label: string,
@@ -47,45 +39,36 @@ export function WatchProviders({ providers, movieTitle }: WatchProvidersProps) {
 					{label}
 				</h4>
 				<div className='flex flex-wrap gap-2'>
-					{providerList.map((provider) => {
-						const hasImageError = imgErrors[provider.provider_id];
-						const imageUrl =
-							provider.logo_path ?
-								`${env.TMDB_IMAGE_URL}/w45${provider.logo_path}`
-							:	null;
+					{providerList.map((provider) => (
+						<div
+							key={provider.provider_id}
+							className='group relative flex items-center gap-2 px-3 py-2 bg-black/40 backdrop-blur-md rounded-lg border border-white/10 hover:border-red-500/50 transition-all duration-300'
+							title={provider.provider_name}
+						>
+							{provider.logo_path ?
+								<div className='relative w-6 h-6 rounded overflow-hidden flex-shrink-0'>
+									<MovieImage
+										src={provider.logo_path}
+										alt={provider.provider_name}
+										type='provider'
+										sizes='24px'
+										className='object-cover'
+									/>
+								</div>
+							:	<div className='w-6 h-6 bg-zinc-800 rounded flex items-center justify-center flex-shrink-0'>
+									<span className='text-xs text-gray-300'>
+										{provider.provider_name.charAt(0)}
+									</span>
+								</div>
+							}
+							<span className='text-sm font-medium text-gray-200'>
+								{provider.provider_name}
+							</span>
 
-						return (
-							<div
-								key={provider.provider_id}
-								className='group relative flex items-center gap-2 px-3 py-2 bg-black/40 backdrop-blur-md rounded-lg border border-white/10 hover:border-red-500/50 transition-all duration-300'
-								title={provider.provider_name}
-							>
-								{imageUrl && !hasImageError ?
-									<div className='relative w-6 h-6 rounded overflow-hidden flex-shrink-0'>
-										<Image
-											src={imageUrl}
-											alt={provider.provider_name}
-											fill
-											sizes='24px'
-											className='object-cover'
-											onError={() => handleImageError(provider.provider_id)}
-										/>
-									</div>
-								:	<div className='w-6 h-6 bg-zinc-800 rounded flex items-center justify-center flex-shrink-0'>
-										<span className='text-xs text-gray-300'>
-											{provider.provider_name.charAt(0)}
-										</span>
-									</div>
-								}
-								<span className='text-sm font-medium text-gray-200'>
-									{provider.provider_name}
-								</span>
-
-								{/* Efeito de brilho no hover */}
-								<div className='absolute inset-0 rounded-lg bg-gradient-to-r from-red-500/0 via-red-500/10 to-red-500/0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none' />
-							</div>
-						);
-					})}
+							{/* Efeito de brilho no hover */}
+							<div className='absolute inset-0 rounded-lg bg-gradient-to-r from-red-500/0 via-red-500/10 to-red-500/0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none' />
+						</div>
+					))}
 				</div>
 			</div>
 		);

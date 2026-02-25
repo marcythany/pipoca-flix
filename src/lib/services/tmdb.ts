@@ -69,6 +69,15 @@ export async function getMovieDetails(
 	return fetchFromInternalAPI<MovieDetails>(`/api/movie/${movieId}/details`);
 }
 
+export async function searchMovies(
+	query: string,
+	page = 1,
+): Promise<MovieResponse | null> {
+	return fetchFromInternalAPI<MovieResponse>(
+		`/api/movies/search?query=${encodeURIComponent(query)}&page=${page}`,
+	);
+}
+
 export function getProvidersByCountry(
 	data: MovieWatchProvidersResponse | null,
 	countryCode: string = 'BR',

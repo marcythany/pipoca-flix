@@ -1,11 +1,11 @@
 'use client';
 
-import { env } from '@/env';
 import { Movie } from '@/lib/types/movie';
-import Image from 'next/image';
+import { formatReleaseYear } from '@/lib/utils/date';
 import Link from 'next/link';
 import { useState } from 'react';
-import { ProviderIcon } from './ProviderIcon'; // import do novo componente
+import { MovieImage } from './MovieImage';
+import { ProviderIcon } from './ProviderIcon';
 
 interface MovieCardProps {
 	movie: Movie;
@@ -29,11 +29,6 @@ export function MovieCard({ movie, isNowPlaying = false }: MovieCardProps) {
 	const [providers, setProviders] = useState<Provider[]>([]);
 	const [isLoading, setIsLoading] = useState(false);
 	const [hasError, setHasError] = useState(false);
-
-	const posterUrl =
-		movie.poster_path ?
-			`${env.TMDB_IMAGE_URL}/w500${movie.poster_path}`
-		:	'https://placehold.co/500x750/1f1f1f/666666?text=Sem+Imagem';
 
 	const handleMouseEnter = async () => {
 		if (providers.length > 0 || isLoading || hasError || isNowPlaying) return;
@@ -59,29 +54,31 @@ export function MovieCard({ movie, isNowPlaying = false }: MovieCardProps) {
 		}
 	};
 
+	const releaseYear = formatReleaseYear(movie.release_date);
+
 	return (
 		<Link href={`/filme/${movie.id}`} className='group block'>
 			<div
-				className='relative aspect-2/3 overflow-hidden rounded-xl border border-white/10 bg-zinc-900 shadow-xl transition-all duration-500 group-hover:scale-105 group-hover:border-red-500/50 group-hover:shadow-2xl group-hover:shadow-red-600/20'
+				className='relative aspect-[2/3] overflow-hidden rounded-xl border border-white/10 bg-zinc-900 shadow-xl transition-all duration-500 group-hover:scale-105 group-hover:border-red-500/50 group-hover:shadow-2xl group-hover:shadow-red-600/20'
 				onMouseEnter={handleMouseEnter}
 			>
-				<Image
-					src={posterUrl}
+				<MovieImage
+					src={movie.poster_path}
 					alt={`Pôster do filme ${movie.title}`}
-					fill
+					type='poster'
 					sizes='(max-width: 768px) 50vw, (max-width: 1200px) 25vw, 20vw'
 					className='object-cover transition-transform duration-500 group-hover:scale-110'
 				/>
 
 				{/* Overlay */}
-				<div className='absolute inset-0 bg-linear-to-t from-black/95 via-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-500 flex flex-col justify-end p-4 backdrop-blur-[2px]'>
+				<div className='absolute inset-0 bg-gradient-to-t from-black/95 via-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-500 flex flex-col justify-end p-4 backdrop-blur-[2px]'>
 					<h3 className='text-sm font-bold text-white line-clamp-2 drop-shadow-lg'>
 						{movie.title}
 					</h3>
 					<div className='flex items-center gap-2 mt-1 text-xs text-gray-300'>
-						<span>{new Date(movie.release_date).getFullYear()}</span>
+						<span>{releaseYear}</span>
 						<span className='flex items-center gap-1'>
-							⭐ {movie.vote_average.toFixed(1)}
+							⭐ {movie.vote_average?.toFixed(1) ?? '?'}
 						</span>
 					</div>
 
@@ -102,11 +99,10 @@ export function MovieCard({ movie, isNowPlaying = false }: MovieCardProps) {
 
 								{!isLoading && providers.length > 0 && (
 									<div>
-										<h4 className='text-sm font-bold text-white line-clamp-2 drop-shadow-lg'>
+										<h4 className='text-xs font-semibold text-white/80 mb-1'>
 											Streaming
 										</h4>
-
-										<div className='flex flex-wrap gap-2'>
+										<div className='flex flex-wrap gap-1'>
 											{providers.map((provider) => (
 												<ProviderIcon
 													key={provider.provider_id}
@@ -121,14 +117,9 @@ export function MovieCard({ movie, isNowPlaying = false }: MovieCardProps) {
 								)}
 
 								{!isLoading && !hasError && providers.length === 0 && (
-									<div>
-										<h4 className='text-sm font-bold text-white line-clamp-2 drop-shadow-lg'>
-											Streaming
-										</h4>
-										<span className='text-xs text-gray-400 italic'>
-											Indisponível
-										</span>
-									</div>
+									<span className='text-xs text-gray-400 italic'>
+										Streaming indisponível
+									</span>
 								)}
 
 								{hasError && (
@@ -140,7 +131,7 @@ export function MovieCard({ movie, isNowPlaying = false }: MovieCardProps) {
 						}
 					</div>
 
-					<div className='absolute inset-0 rounded-xl bg-linear-to-r from-red-500/0 via-red-500/10 to-red-500/0 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none' />
+					<div className='absolute inset-0 rounded-xl bg-gradient-to-r from-red-500/0 via-red-500/10 to-red-500/0 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none' />
 				</div>
 			</div>
 		</Link>

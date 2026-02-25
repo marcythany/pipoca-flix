@@ -1,8 +1,8 @@
 'use client';
 
-import { env } from '@/env';
 import { MovieDetails, WatchProvider } from '@/lib/types/movie';
-import Image from 'next/image';
+import { formatReleaseYear } from '@/lib/utils/date';
+import { MovieImage } from './MovieImage';
 import { WatchProviders } from './WatchProviders';
 
 interface MovieDetailsClientProps {
@@ -19,16 +19,6 @@ export function MovieDetailsClient({
 	movie,
 	providers,
 }: MovieDetailsClientProps) {
-	const backdropUrl =
-		movie.backdrop_path ?
-			`${env.TMDB_IMAGE_URL}/original${movie.backdrop_path}`
-		:	null;
-
-	const posterUrl =
-		movie.poster_path ?
-			`${env.TMDB_IMAGE_URL}/w500${movie.poster_path}`
-		:	'https://placehold.co/500x750/1f1f1f/666666?text=Sem+Imagem';
-
 	const director = movie.credits?.crew?.find(
 		(person) => person.job === 'Director',
 	);
@@ -39,30 +29,32 @@ export function MovieDetailsClient({
 		(video) => video.type === 'Trailer' && video.site === 'YouTube',
 	);
 
+	const releaseYear = formatReleaseYear(movie.release_date);
+
 	return (
 		<>
 			<section className='relative h-[60vh] w-full'>
-				{backdropUrl && (
+				{movie.backdrop_path && (
 					<>
-						<Image
-							src={backdropUrl}
+						<MovieImage
+							src={movie.backdrop_path}
 							alt={movie.title}
-							fill
+							type='backdrop'
 							priority
 							className='object-cover'
 						/>
-						<div className='absolute inset-0 bg-linear-to-r from-black via-black/80 to-transparent' />
-						<div className='absolute inset-0 bg-linear-to-t from-zinc-950 via-transparent to-transparent' />
+						<div className='absolute inset-0 bg-gradient-to-r from-black via-black/80 to-transparent' />
+						<div className='absolute inset-0 bg-gradient-to-t from-zinc-950 via-transparent to-transparent' />
 					</>
 				)}
 
 				<div className='relative container mx-auto h-full flex items-end px-4 pb-12'>
 					<div className='flex gap-6 items-end'>
-						<div className='hidden md:block relative w-64 aspect-2/3 rounded-lg overflow-hidden border-2 border-white/20 shadow-2xl'>
-							<Image
-								src={posterUrl}
+						<div className='hidden md:block relative w-64 aspect-[2/3] rounded-lg overflow-hidden border-2 border-white/20 shadow-2xl'>
+							<MovieImage
+								src={movie.poster_path}
 								alt={movie.title}
-								fill
+								type='poster'
 								className='object-cover'
 							/>
 						</div>
@@ -74,9 +66,9 @@ export function MovieDetailsClient({
 							<p className='text-xl text-gray-300 mb-4'>{movie.tagline}</p>
 
 							<div className='flex flex-wrap gap-4 text-sm text-gray-300 mb-4'>
-								<span>{new Date(movie.release_date).getFullYear()}</span>
+								<span>{releaseYear}</span>
 								<span className='flex items-center gap-1'>
-									⭐ {movie.vote_average.toFixed(1)}
+									⭐ {movie.vote_average?.toFixed(1) ?? '?'}
 								</span>
 								<span>{movie.runtime} min</span>
 							</div>
@@ -111,17 +103,12 @@ export function MovieDetailsClient({
 									{cast.map((actor) => (
 										<div key={actor.id} className='text-center'>
 											<div className='relative w-full aspect-square rounded-full overflow-hidden mb-2 border-2 border-white/10'>
-												{actor.profile_path ?
-													<Image
-														src={`${env.TMDB_IMAGE_URL}/w185${actor.profile_path}`}
-														alt={actor.name}
-														fill
-														className='object-cover'
-													/>
-												:	<div className='w-full h-full bg-zinc-800 flex items-center justify-center'>
-														<span className='text-2xl'>🎭</span>
-													</div>
-												}
+												<MovieImage
+													src={actor.profile_path}
+													alt={actor.name}
+													type='profile'
+													className='object-cover'
+												/>
 											</div>
 											<p className='text-sm font-medium'>{actor.name}</p>
 											<p className='text-xs text-gray-400'>{actor.character}</p>
