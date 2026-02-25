@@ -1,36 +1,124 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🍿 PipocaFlix
 
-## Getting Started
+PipocaFlix é um site de catálogo de filmes que consome a API do The Movie Database (TMDB). Desenvolvido com **Next.js 16**, **Tailwind CSS v4** e **TypeScript**, oferece uma experiência moderna e responsiva para descobrir filmes populares, em cartaz, mais bem avaliados e buscar por títulos.
 
-First, run the development server:
+## 🚀 Tecnologias
+
+- [Next.js 16](https://nextjs.org/) – Framework React com suporte a Server Components e App Router
+- [Tailwind CSS v4](https://tailwindcss.com/) – Estilização utilitária e performática
+- [TypeScript](https://www.typescriptlang.org/) – Tipagem estática
+- [TMDB API](https://developers.themoviedb.org/3) – Fonte de dados de filmes
+
+## ✨ Funcionalidades
+
+- Página inicial com seções:
+  - Filme em destaque (Hero)
+  - Em cartaz nos cinemas
+  - Mais populares
+  - Mais bem avaliados
+- Página de detalhes do filme:
+  - Sinopse, elenco, trailer (YouTube), provedores de streaming (Brasil)
+  - Ficha técnica completa
+- Busca de filmes com sugestão em tempo real
+- Design responsivo e moderno com efeitos glassmorphism
+- Rate limiting para respeitar os limites da API do TMDB
+- Otimização de imagens com `next/image`
+
+## 📦 Como executar
+
+### Pré-requisitos
+
+- Node.js 20.x ou superior
+- Uma chave de API do TMDB (crie uma conta em [themoviedb.org](https://www.themoviedb.org/) e gere uma chave)
+
+### Instalação
+
+1. Clone o repositório:
+
+   ```bash
+   git clone https://github.com/seu-usuario/pipoca-flix.git
+   cd pipoca-flix
+   ```
+
+   Instale as dependências:
+
+```bash
+npm install
+
+
+# ou
+
+yarn
+
+# ou
+
+pnpm install
+```
+
+2. Configure as variáveis de ambiente:
+   Crie um arquivo .env.local na raiz do projeto com o seguinte conteúdo:
+
+env
+TMDB_API_KEY=sua_chave_api_aqui
+TMDB_BASE_URL=<https://api.themoviedb.org/3>
+NEXT_PUBLIC_TMDB_IMAGE_URL=<https://image.tmdb.org/t/p>
+
+3. Execute o servidor de desenvolvimento:
 
 ```bash
 npm run dev
-# or
+
+# ou
+
 yarn dev
-# or
+
+# ou
+
 pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Abra <http://localhost:3000> no navegador.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Build para produção
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm run build
+npm start
+```
 
-## Learn More
+🔧 Estrutura de pastas
 
-To learn more about Next.js, take a look at the following resources:
+```text
+src/
+├── app/ # Rotas e layouts (App Router)
+│ ├── api/ # Rotas de API (rate limiting, proxy TMDB)
+│ ├── busca/ # Página de busca
+│ ├── filme/[id]/ # Página de detalhes do filme
+│ └── page.tsx # Página inicial
+├── components/ # Componentes React
+│ ├── sections/ # Componentes de seção (HeroMovie, etc.)
+│ └── ui/ # Componentes reutilizáveis (MovieImage, etc.)
+├── lib/ # Utilitários, serviços e tipos
+│ ├── services/tmdb.ts # Funções de acesso aos dados (via API interna)
+│ ├── types/ # Tipos TypeScript
+│ └── utils/ # Rate limiter, formatação de data
+└── env.ts # Validação de variáveis de ambiente
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+🧠 Conceitos aplicados
+Server Components e Client Components para otimizar a renderização
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Suspense e Streaming para carregamento progressivo
 
-## Deploy on Vercel
+Rate Limiting em memória (Token Bucket) para controlar chamadas à API TMDB
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Cache de requisições via fetch com next.revalidate
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Imagens otimizadas com fallback para placeholders
+
+Tailwind CSS v4 com configuração CSS-first
+
+📄 Licença
+Este projeto está sob a licença MIT. Veja o arquivo LICENSE para mais detalhes.
+
+Desenvolvido por Marcy
