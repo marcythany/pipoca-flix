@@ -10,10 +10,13 @@ interface WatchProvidersProps {
 		rent?: WatchProvider[];
 		link?: string;
 	} | null;
-	movieTitle: string;
+	movieTitle: string; // mantido, mas não utilizado no momento
 }
 
-export function WatchProviders({ providers, movieTitle }: WatchProvidersProps) {
+export function WatchProviders({
+	providers,
+	movieTitle: _movieTitle,
+}: WatchProvidersProps) {
 	if (
 		!providers ||
 		(!providers.flatrate && !providers.buy && !providers.rent)

@@ -17,8 +17,11 @@ export function BuscaContent() {
 
 	useEffect(() => {
 		if (!query) {
+			// eslint-disable-next-line react-hooks/set-state-in-effect
 			setMovies([]);
+
 			setTotalResults(0);
+
 			setLoading(false);
 			return;
 		}
@@ -46,7 +49,9 @@ export function BuscaContent() {
 	if (movies.length === 0) {
 		return (
 			<div className='text-center py-12'>
-				<p className='text-gray-400'>Nenhum filme encontrado para "{query}".</p>
+				<p className='text-gray-400'>
+					Nenhum filme encontrado para &quot;{query}&quot;.
+				</p>
 			</div>
 		);
 	}

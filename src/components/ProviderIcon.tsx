@@ -3,14 +3,14 @@
 import { MovieImage } from './MovieImage';
 
 interface ProviderIconProps {
-	providerId: number;
+	providerId: number; // mantido, mas marcado como não utilizado
 	providerName: string;
 	logoPath: string | null;
 	size?: 'sm' | 'md';
 }
 
 export function ProviderIcon({
-	providerId,
+	providerId: _providerId,
 	providerName,
 	logoPath,
 	size = 'sm',

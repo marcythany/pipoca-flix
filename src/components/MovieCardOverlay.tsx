@@ -1,12 +1,12 @@
 'use client';
 
-import { Movie } from '@/lib/types/movie';
+import { Movie, WatchProvider } from '@/lib/types/movie';
 import { ProviderIcon } from './ProviderIcon';
 
 interface MovieCardOverlayProps {
 	movie: Movie;
 	isNowPlaying: boolean;
-	providers: any[];
+	providers: WatchProvider[];
 	isLoading: boolean;
 	hasError: boolean;
 }

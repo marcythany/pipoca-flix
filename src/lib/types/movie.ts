@@ -28,19 +28,14 @@ export type WatchProvider = {
 export type MovieWatchProvidersResponse = {
 	id: number;
 	results: {
-		BR?: {
-			link?: string;
-			flatrate?: WatchProvider[];
-			buy?: WatchProvider[];
-			rent?: WatchProvider[];
-		};
-		US?: {
-			link?: string;
-			flatrate?: WatchProvider[];
-			buy?: WatchProvider[];
-			rent?: WatchProvider[];
-		};
-		// outros países podem ser adicionados conforme necessário
+		[countryCode: string]:
+			| {
+					link?: string;
+					flatrate?: WatchProvider[];
+					buy?: WatchProvider[];
+					rent?: WatchProvider[];
+			  }
+			| undefined;
 	};
 };
 
