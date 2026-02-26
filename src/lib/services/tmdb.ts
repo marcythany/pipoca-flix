@@ -1,4 +1,5 @@
 // lib/services/tmdb.ts
+import { env } from '@/env';
 import {
 	MovieDetails,
 	MovieResponse,
@@ -6,27 +7,35 @@ import {
 	WatchProvider,
 } from '@/lib/types/movie';
 
-async function fetchFromInternalAPI<T>(endpoint: string): Promise<T | null> {
+const defaultHeaders = {
+	accept: 'application/json',
+	Authorization: `Bearer ${env.TMDB_API_KEY}`,
+};
+
+async function fetchFromTMDB<T>(
+	endpoint: string,
+	revalidate?: number,
+	tags?: string[],
+): Promise<T | null> {
 	try {
-		// Determina a URL base
-		const baseUrl =
-			process.env.VERCEL_URL ?
-				`https://${process.env.VERCEL_URL}`
-			:	process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+		const url = `${env.TMDB_BASE_URL}${endpoint}`;
 
-		const url = `${baseUrl}${endpoint}`;
-
-		const response = await fetch(url);
+		const response = await fetch(url, {
+			headers: defaultHeaders,
+			next: {
+				...(revalidate !== undefined && { revalidate }),
+				...(tags?.length && { tags }),
+			},
+		});
 
 		if (!response.ok) {
-			console.error('Error response:', await response.text());
+			console.error(`TMDB error [${url}]:`, await response.text());
 			return null;
 		}
 
-		const data = await response.json();
-		return data as T;
+		return response.json() as Promise<T>;
 	} catch (error) {
-		console.error('Fetch error:', error);
+		console.error('TMDB fetch error:', error);
 		return null;
 	}
 }
@@ -34,47 +43,58 @@ async function fetchFromInternalAPI<T>(endpoint: string): Promise<T | null> {
 export async function getPopularMovies(
 	page = 1,
 ): Promise<MovieResponse | null> {
-	return fetchFromInternalAPI<MovieResponse>(
-		`/api/movies/popular?page=${page}`,
+	return fetchFromTMDB<MovieResponse>(
+		`/movie/popular?language=pt-BR&page=${page}`,
+		3600,
+		['popular-movies'],
 	);
 }
 
 export async function getTopRatedMovies(
 	page = 1,
 ): Promise<MovieResponse | null> {
-	return fetchFromInternalAPI<MovieResponse>(
-		`/api/movies/top-rated?page=${page}`,
+	return fetchFromTMDB<MovieResponse>(
+		`/movie/top_rated?language=pt-BR&page=${page}`,
+		86400,
+		['top-rated-movies'],
 	);
 }
 
 export async function getNowPlayingMovies(
 	page = 1,
 ): Promise<MovieResponse | null> {
-	return fetchFromInternalAPI<MovieResponse>(
-		`/api/movies/now-playing?page=${page}`,
-	);
-}
-
-export async function getMovieWatchProviders(
-	movieId: number,
-): Promise<MovieWatchProvidersResponse | null> {
-	return fetchFromInternalAPI<MovieWatchProvidersResponse>(
-		`/api/movie/${movieId}/providers`,
+	return fetchFromTMDB<MovieResponse>(
+		`/movie/now_playing?language=pt-BR&region=BR&page=${page}`,
+		1800,
+		['now-playing-movies'],
 	);
 }
 
 export async function getMovieDetails(
 	movieId: number,
 ): Promise<MovieDetails | null> {
-	return fetchFromInternalAPI<MovieDetails>(`/api/movie/${movieId}/details`);
+	return fetchFromTMDB<MovieDetails>(`/movie/${movieId}?language=pt-BR`, 3600, [
+		`movie-${movieId}`,
+	]);
+}
+
+export async function getMovieWatchProviders(
+	movieId: number,
+): Promise<MovieWatchProvidersResponse | null> {
+	return fetchFromTMDB<MovieWatchProvidersResponse>(
+		`/movie/${movieId}/watch/providers`,
+		3600,
+		[`movie-providers-${movieId}`],
+	);
 }
 
 export async function searchMovies(
 	query: string,
 	page = 1,
 ): Promise<MovieResponse | null> {
-	return fetchFromInternalAPI<MovieResponse>(
-		`/api/movies/search?query=${encodeURIComponent(query)}&page=${page}`,
+	return fetchFromTMDB<MovieResponse>(
+		`/search/movie?language=pt-BR&query=${encodeURIComponent(query)}&page=${page}`,
+		60,
 	);
 }
 
