@@ -2,23 +2,72 @@
 
 import { MovieDetails, WatchProvider } from '@/lib/types/movie';
 import { formatReleaseYear } from '@/lib/utils/date';
+import * as React from 'react';
 import { MovieImage } from './MovieImage';
 import { WatchProviders } from './WatchProviders';
 
 interface MovieDetailsClientProps {
-	movie: MovieDetails;
-	providers: {
+	paramsPromise: Promise<{ id: string }>;
+}
+
+export function MovieDetailsClient({ paramsPromise }: MovieDetailsClientProps) {
+	// Desembrulha a Promise de forma segura (React.use é o equivalente a `await` em Client Components)
+	const { id } = React.use(paramsPromise);
+
+	const [movie, setMovie] = React.useState<MovieDetails | null>(null);
+	const [providers, setProviders] = React.useState<{
 		flatrate?: WatchProvider[];
 		buy?: WatchProvider[];
 		rent?: WatchProvider[];
 		link?: string;
-	} | null;
-}
+	} | null>(null);
+	const [loading, setLoading] = React.useState(true);
+	const [error, setError] = React.useState<string | null>(null);
 
-export function MovieDetailsClient({
-	movie,
-	providers,
-}: MovieDetailsClientProps) {
+	React.useEffect(() => {
+		async function fetchData() {
+			try {
+				setLoading(true);
+				// Busca detalhes do filme
+				const movieRes = await fetch(`/api/movie/${id}/details`);
+				if (!movieRes.ok) throw new Error('Erro ao carregar filme');
+				const movieData = await movieRes.json();
+				setMovie(movieData);
+
+				// Busca provedores de streaming
+				const providersRes = await fetch(`/api/movie/${id}/providers`);
+				if (providersRes.ok) {
+					const providersData = await providersRes.json();
+					setProviders(providersData);
+				}
+			} catch (err) {
+				setError(err instanceof Error ? err.message : 'Erro desconhecido');
+			} finally {
+				setLoading(false);
+			}
+		}
+
+		if (id) {
+			fetchData();
+		}
+	}, [id]);
+
+	if (loading) {
+		return (
+			<div className='flex justify-center items-center min-h-screen'>
+				<div className='animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-white'></div>
+			</div>
+		);
+	}
+
+	if (error || !movie) {
+		return (
+			<div className='flex justify-center items-center min-h-screen text-red-500'>
+				{error || 'Filme não encontrado'}
+			</div>
+		);
+	}
+
 	const director = movie.credits?.crew?.find(
 		(person) => person.job === 'Director',
 	);
@@ -31,6 +80,7 @@ export function MovieDetailsClient({
 
 	const releaseYear = formatReleaseYear(movie.release_date);
 
+	// O restante do JSX permanece IGUAL ao que você já tem, usando `movie` e `providers`
 	return (
 		<>
 			<section className='relative h-[60vh] w-full'>
